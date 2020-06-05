@@ -1,0 +1,20 @@
+---
+- hosts: workers
+  user: root
+  gather_facts: true
+
+  vars:
+    motd: "This is a CoE Lab machine\n"
+
+  tasks:
+    - name : task 01 - changing motd
+      copy:
+        dest: /etc/motd
+        content: "{{ motd }}"
+      notify: motd changed
+
+  handlers:
+    - name: motd changed
+      debug:
+        msg: motd changes are applied on a vm running in lab    
+...

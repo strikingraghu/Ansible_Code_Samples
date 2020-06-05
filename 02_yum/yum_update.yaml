@@ -1,0 +1,16 @@
+---
+- hosts: workers
+  user: root
+  gather_facts: true
+
+  tasks:
+    - name: updating yum on machine
+      yum: name=* state=latest
+      notify:
+        msg: yum updated
+
+  handlers:
+    - name: yum updated
+      debug:
+        msg: yum packages are updated within vm
+...

@@ -1,0 +1,16 @@
+---
+- hosts: workers
+  gather_facts: true
+  user: root
+
+  tasks:
+    - name: getting ip address from worker machines
+      debug:
+        msg: "{{ ansible_default_ipv4.address }}"
+      notify: fetching ip address
+
+  handlers:
+    - name: fetching ip address
+      debug:
+        msg: vm's ip address
+...
