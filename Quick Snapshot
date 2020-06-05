@@ -1,0 +1,283 @@
+Commands:
+
+ansible '*' -m file -a 'path=/tmp/test state=touch'
+ansible '*' -m file -a 'path=/tmp/test state=file mode=600'
+ansible '*' -m file -a 'path=/tmp/test state=file mode=755'
+ansible '*' -m copy -a 'src=/tmp/x dest=/tmp/x'
+ansible '*' -m copy -a 'remote_src=yes src=/tmp/x dest=/tmp/y'
+ansible '*' -m command -a 'hostname' -o
+ansible '*' -a 'hostname' -o
+ansible '*' -a 'id'
+ansible '*' -a 'rm /tmp/test_copy_module removes=/tmp/test_copy_module'
+ansible '*' -m file -a 'path=/tmp/test_copy_module state=absent'
+ansible 'client-nodes-01' -m file -a 'path=/tmp/test_copy_module.txt state=touch mode=600'
+ansible '*' -m setup -a 'filter=ansible_memfree_mb'
+
+
+YAML:
+
+1)
+
+---
+- Aston Martin:
+    year_founded: 1913
+    website: astonmartin.com
+    founded_by:
+      - Lionel Martin
+      - Robert B
+- Fiat:
+    year_founded: 1899
+    website: fiat.com
+    founded_by:
+      - Giovanni Agnelli
+- Ford:
+    year_founded: 1903
+    website: ford.com
+    founded_by:
+      - Henry Ford
+- Vauxhall:
+    year_founded: 1857
+    website: vauxhall.co.uk
+    founded_by:
+      - Alexander Wilson
+...
+
+
+2)
+
+---
+hosts: all
+user: root
+gather_facts: false
+
+vars:
+  motd: "Welcome to the CentOS Linux\n"
+
+tasks:
+  - name: configure motd
+    copy:
+      content: "{{ motd }}"
+      dest: /etc/motd
+    notify: motd changed
+
+handlers:
+  - name: motd changed
+    debug:
+      msg: motd changed on vm
+...
+
+
+3)
+
+---
+hosts: all
+gather_facts: false
+
+vars:
+  inline_named_list:
+    [ item1, item2, item3, item4 ]
+
+tasks:
+  - name: Test inline named list
+    debug:
+      msg: "{{ inline_named_list }}"
+
+  - name: Test inline named list first dot notation
+    debug:
+      msg: "{{ inline_named_list.0 }}"
+ 
+  - name: Test inline named list first dot notation via python option
+    debug:
+      mgs: "{{ inline_named_list[0] }}"
+...
+
+
+4)
+
+---
+hosts: all
+
+tasks:
+  - name: show IP address
+    debug:
+      msg: "{{ ansible_deafult_ipv4.address }}"
+...
+
+
+5)
+
+---
+hosts: all
+
+tasks:
+  - name: show ip address
+    debug:
+      msg: "{{ ansible_default_ipv4.address }}"
+
+  - name: show custom fact1
+    debug:
+      msg: "{{ ansible_local.getdate1.date }}"
+
+  - name: show custom fact2
+    debug:
+      msg: "{{ ansible_local.getdate2.date.date }}"
+...
+
+
+6)
+
+---
+hosts: all
+
+tasks:
+  - name: show ip address
+    debug:
+      msg: "{{ ansible_deafult_ipv4.address }}"
+
+  - name: show custom fact1
+    debug:
+      msg: "{{ ansible_local.getdate1.date }}"
+
+  - name: show custom fact2
+    debug:
+      msg: "{{ ansible_local.getdate2.date.date }}"
+
+  - name: show custom fact1 in hostvars
+    debug:
+      msg: "{{ hostvars[ansible_hostname].ansible_local.getdate1.date }}"
+
+  - name: show custom fact2 in hostvars
+    debug:
+      msg: "{{ hostvars[ansible_hostname].ansible_local.getdate2.date.date }}"
+...
+
+
+7)
+
+---
+hosts: all
+
+tasks:
+  - name: make facts dir
+    file:
+      path: /etc/ansible/facts.d
+      recurse: yes
+      state: directory
+
+  - name: copy fact1 files
+    copy:
+      src: /etc/ansible/facts.d/getdate1.fact
+      dest: /etc/ansible/facts.d/getdate1.fact
+      mode: 0755
+
+  - name: copy fact2 files
+    copy:
+      stc: /etc/ansible/facts.d/getdate2.fact
+      dest: /etc/ansible/facts.d/getdate2.fact
+      mode: 0755
+
+  - name: refresh facts
+    setup:
+
+  - name: show ip address
+    debug:
+      msg: "{{ ansible_deafult_ipv4.address }}"
+
+  - name: show custom fact1
+    debug:
+      msg: "{{ ansible_local.getdate1.date }}"
+
+  - name: show custom fact2
+    debug:
+      msg: "{{ ansible_local.getdate2.date.date }}"
+
+  - name: show custom fact1 in hostvars
+    debug:
+      msg: "{{ hostvars[ansible_hostname].ansible_local.getdate1.date }}"
+
+  - name: show custom fact2 in hostvars
+    debug:
+      msg: "{{ hostvars[ansible_hostname].ansible_local.getdate2.date.date }}"
+...
+
+
+8)
+
+---
+hosts: all
+
+tasks:
+  - name: ansible jinja2 if condition
+    debug:
+      msg: >
+           --== ansible jinja2 if condition ==--
+           {# if the hostname is ubuntu-c, include a message -#}
+           {% if ansible_hostname == "ubuntu-c" -%}
+                 This is ubuntu-c machine
+           {% endif %}
+...
+
+
+9)
+
+---
+hosts: all
+
+tasks:
+  - name: ansible jinja2 if elif condition
+    debug:
+      msg: >
+           --== ansible jinja2 if elif condition ==--
+           {% if ansible_hostname == "ubuntu-c" -%}
+                 This is ubuntu-c machine
+           {% elif ansible_hostname == "centos-c" -%}
+                 This is centos-c machine
+           {% endif %}
+...
+
+
+10)
+
+---
+hosts: all
+
+tasks:
+  - name: ansible jinja2 for loop statements
+    debug:
+      msg: >
+           --== ansible jinja2 for loop statements ==--
+           {% for entry in ansible_all_ipv4_addresses -%}
+              ip address entry {{ loop.index}} = {{ entry }}
+           {% endfor %}
+...
+
+
+Application Deployments, Templating & Playbooks
+
+1)
+
+---
+hosts: ubuntu1,ubuntu2,centos1,centos2
+
+tasks:
+  - name: Install EPEL
+    yum:
+      name: epel-release
+      update_cache: yes
+      state: latest
+    when: ansible_distribution == 'CentOS'
+
+  - name: Install Nginx CentOS
+    yum:
+      name: nginx
+      update_cache: yes
+      state: latest
+    when: ansible_distribution == 'CentOS'
+
+  - name: Install Nginx Ubuntu
+    apt:
+      name: nginx
+      update_cache: yes
+      state: latest
+    when: ansible_distribution == 'Ubuntu'
+...
