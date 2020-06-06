@@ -1,0 +1,49 @@
+---
+- name: installing erlang, rabbitmq and rabbitmq plugins
+
+  hosts: workers
+  user: root
+  gather_facts: true
+
+  tasks:
+    - name: install epel-release
+      yum:
+        name: epel-release
+        state: latest
+
+    - name: install erlang from epel
+      yum:
+        name: erlang
+        state: latest
+
+    - name: install rabbitmq
+      yum:
+        name: https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.15/rabbitmq-server-3.6.15-1.el6.noarch.rpm
+        state: present
+      notify: restart rabbitmq
+
+    - name: starting rabbitmq
+      service:
+        name: rabbitmq-server
+        state: started
+
+    - wait_for:
+        port: 5672
+
+    - rabbitmq_vhost:
+        name: /hello_world
+        state: present
+      notify: restart rabbitmq
+
+    - rabbitmq_user:
+        user: admin
+        password: changeme
+        state: present
+      notify: restart rabbitmq
+
+  handlers:
+    - name: restart rabbitmq
+      service:
+        name: rabbitmq-server
+        state: restarted
+...
