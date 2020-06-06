@@ -1,0 +1,42 @@
+---
+- name: installing memcache, service start and enabling service
+
+  hosts: workers
+  user: root
+  gather_facts: true
+
+  tasks:
+    - name: update epel-release
+      yum:
+        name: epel-release
+        update_cache: yes
+        state: latest
+      notify: updated epel packages
+
+    - name: install memcache
+      yum:
+        name: memcached
+        update_cache: yes
+        state: present
+      notify: installed memcached
+
+    - name: update service settings
+      service:
+        name: memcached
+        state: started
+        enabled: yes
+      notify: memcached service enabled
+
+  handlers:
+    - name: updated epel packages
+      debug:
+        msg: important packages are updated within vm
+
+    - name: installed memcached
+      debug:
+        msg: latest version of memcached installed within vm
+
+    - name: memcached service enabled
+      debug:
+        msg: memcached service settings is changed to enabled mode
+...
