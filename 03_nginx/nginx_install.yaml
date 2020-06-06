@@ -1,0 +1,27 @@
+---
+- hosts: workers
+  user: root
+  gather_facts: true
+
+  tasks:
+    - name: yum update
+      yum: name=* state=latest
+
+    - name: install epel-release
+      yum:
+        name: epel-release
+        update_cache: yes
+        state: latest
+
+    - name: install nginx
+      yum:
+        name: nginx
+        update_cache: yes
+        state: latest
+      notify: installed nginx successfully
+
+  handlers:
+    - name: installed nginx successfully
+      debug:
+        msg: nginx component is installed on vm
+...
